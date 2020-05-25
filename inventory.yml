@@ -1,0 +1,4 @@
+all:
+gitlab:
+  hosts:
+    git.sdb247.com:
