@@ -1,6 +1,4 @@
 ---
-- name: Setup Gitlab-CE
-  hosts: gitlab
-  tasks:
-    import_role:
-      name: gitlab
+- hosts: gitlab
+  roles:
+    - gitlab
