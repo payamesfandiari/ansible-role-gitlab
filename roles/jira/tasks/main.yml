@@ -1,0 +1,189 @@
+---
+- name: include default variables
+  include_vars: "../vars/main.yml"
+  tags: jira
+
+- name: include release specific variables
+  include_vars: "{{ lookup('first_found', _params) }}"
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "../vars"
+  ignore_errors: true
+  tags: jira
+
+- name: include release specific tasks
+  include_tasks: "{{ lookup('first_found', _params) }}"
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
+  ignore_errors: true
+  tags: jira
+
+- name: groupadd
+  group:
+    name: "{{ jira_group }}"
+    system: true
+    state: "present"
+  tags: jira
+
+- name: useradd
+  user:
+    name: "{{ jira_owner }}"
+    group: "{{ jira_group }}"
+    home: "{{ jira_home }}"
+    shell: "/usr/sbin/nologin"
+    system: true
+    create_home: false
+    state: "present"
+  tags: jira
+
+- name: prepare directories
+  file:
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0755') }}"
+    state: "{{ item.state | default('directory') }}"
+  loop:
+    - { dest: "/lib/systemd/system" }
+    - { dest: "{{ jira_download.dest | dirname }}" }
+    - { dest: "{{ mysql_jdbc_download.dest | dirname }}" }
+    - { dest: "{{ postgresql_jdbc_download.dest | dirname }}" }
+    - dest: "{{ jira_catalina }}"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+    - dest: "{{ jira_catalina }}/bin"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+    - dest: "{{ jira_catalina }}/conf"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+    - dest: "{{ jira_home }}"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+  tags: jira
+
+- name: download archive
+  vars:
+    ansible_python_interpreter: "python3"
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    checksum: "{{ item.checksum }}"
+    timeout: 300
+  loop:
+    - "{{ jira_download }}"
+    - "{{ mysql_jdbc_download }}"
+    - "{{ postgresql_jdbc_download }}"
+  register: get_url_result
+  until: get_url_result is succeeded
+  tags: jira
+
+- name: unarchive package
+  shell: |
+    set -o pipefail
+    rm -rf {{ jira_catalina }} \
+      && mkdir -p {{ jira_catalina }}
+    cd {{ jira_catalina }}
+    TMP_DIR="$(mktemp -d)" \
+      && tar -zx -C $TMP_DIR -f {{ jira_download.dest }} \
+      && cp -rfT $TMP_DIR/* . \
+      && rm -rf $TMP_DIR
+    cd {{ jira_catalina }}/lib
+    rm -rf *mysql*.jar
+    TMP_DIR="$(mktemp -d)" \
+      && tar -zx -C $TMP_DIR -f {{ mysql_jdbc_download.dest }} \
+      && mv $TMP_DIR/*/*mysql*-bin.jar . \
+      && rm -rf $TMP_DIR
+    cd {{ jira_catalina }}/lib
+    rm -rf *postgresql*.jar
+    cp {{ postgresql_jdbc_download.dest }} .
+    chown -Rf {{ jira_owner }}:{{ jira_group }} {{ jira_catalina }}
+    chmod 0755 \
+      {{ jira_catalina }} \
+      {{ jira_catalina }}/bin \
+      {{ jira_catalina }}/conf
+  args:
+    executable: "/bin/bash"
+  when: get_url_result is changed
+  notify:
+    - jira | systemctl daemon-reload
+    - jira | systemctl restart jira
+  tags: jira
+
+- name: copy templates
+  template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.src | default('./templates' + item.dest + '.j2') }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { dest: "/lib/systemd/system/jira.service" }
+    - dest: "{{ jira_catalina }}/bin/setenv.sh"
+      src: "./templates/opt/atlassian/jira/bin/setenv.sh.j2"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+      mode: "0755"
+    - dest: "{{ jira_catalina }}/conf/server.xml"
+      src: "./templates/opt/atlassian/jira/conf/server.xml.j2"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+  notify:
+    - jira | systemctl daemon-reload
+    - jira | systemctl restart jira
+  tags: jira
+
+- name: prepare files
+  file:
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+    mode: "{{ item.mode | default('0644') }}"
+    state: "{{ item.state | default('file') }}"
+  loop:
+    - { dest: "/lib/systemd/system/jira.service" }
+    - dest: "{{ jira_catalina }}/bin/setenv.sh"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+      mode: "0755"
+    - dest: "{{ jira_catalina }}/conf/server.xml"
+      owner: "{{ jira_owner }}"
+      group: "{{ jira_group }}"
+  tags: jira
+
+- name: copy crack files
+  file:
+    src: "./files/atlassian-agent.jar"
+    dest: "{{ jira_catalina }}/bin/atlassian-agent.jar"
+    owner: "{{ jira_owner }}"
+    group: "{{ jira_group }}"
+    mode: '0755'
+  tags: jira
+
+- name: systemctl start jira
+  service:
+    name: "jira"
+    state: "started"
+    enabled: true
+  changed_when: false
+  ignore_errors: true
+  tags: jira
+
+- name: flush handlers
+  meta: flush_handlers
+  tags: jira

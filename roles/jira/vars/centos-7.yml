@@ -1,0 +1,4 @@
+---
+_yum:
+  - { state: "latest", name: "fontconfig" }
+  - { state: "latest", name: "unzip" }

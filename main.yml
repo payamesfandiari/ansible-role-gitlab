@@ -1,4 +1,21 @@
 ---
-- hosts: gitlab
+- name: deploy gitlab
+  hosts: gitlab
   roles:
     - gitlab
+
+- name: Atlassian Common packages
+  hosts: atlassian
+  roles:
+    - python
+    - openjdk
+
+- name: deploy jira 8.9.0
+  hosts: jira
+  roles:
+    - jira
+
+- name: deploy Confluence 7.4.0
+  hosts: confluence
+  roles:
+    - confluence

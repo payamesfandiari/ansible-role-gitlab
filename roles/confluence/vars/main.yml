@@ -1,0 +1,37 @@
+---
+
+# (c) Wong Hoi Sing Edison <hswong3i@pantarei-design.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+_confluence_download:
+  7.5.0:
+    url: "https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-7.5.0.tar.gz"
+    dest: "{{ ansible_user_dir }}/.ansible/tmp/atlassian-confluence-7.5.0.tar.gz"
+    checksum: "sha1:24d17eccf1c1555bfd8f2800f099a6fc1eb80f1f"
+  7.4.0:
+    url: "https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-7.4.0.tar.gz"
+    dest: "{{ ansible_user_dir }}/.ansible/tmp/atlassian-confluence-7.4.0.tar.gz"
+    checksum: "sha1:de93afe68a5334962cb83aab0842535848c5059a"
+
+_mysql_jdbc_download:
+  5.1.49:
+    url: "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.49.tar.gz"
+    dest: "{{ ansible_user_dir }}/.ansible/tmp/mysql-connector-java-5.1.49.tar.gz"
+    checksum: "sha1:ed8f8574585edfb630b0b6ee4ebf6f6847795c0f"
+
+_postgresql_jdbc_download:
+  42.2.12:
+    url: "https://jdbc.postgresql.org/download/postgresql-42.2.12.jar"
+    dest: "{{ ansible_user_dir }}/.ansible/tmp/postgresql-42.2.12.jar"
+    checksum: "sha1:1ed5b5f16a67f312a50d420e8bcb7d30b40b033d"
