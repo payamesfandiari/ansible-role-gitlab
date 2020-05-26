@@ -10,6 +10,6 @@ atlassian:
         jira.sdb247.com:
     confluence:
       hosts:
-        confluene.sdb247.com:
+        confluence.sdb247.com:
           confluence_version: 7.4.0
 
