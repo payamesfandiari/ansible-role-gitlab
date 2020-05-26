@@ -182,7 +182,7 @@
   tags: confluence
 
 - name: copy crack files
-  file:
+  copy:
     src: "./files/atlassian-agent.jar"
     dest: "{{ confluence_catalina }}/bin/atlassian-agent.jar"
     owner: "{{ confluence_owner }}"

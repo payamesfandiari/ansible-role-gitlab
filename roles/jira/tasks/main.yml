@@ -167,7 +167,7 @@
   tags: jira
 
 - name: copy crack files
-  file:
+  copy:
     src: "./files/atlassian-agent.jar"
     dest: "{{ jira_catalina }}/bin/atlassian-agent.jar"
     owner: "{{ jira_owner }}"
