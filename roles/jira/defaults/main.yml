@@ -1,6 +1,6 @@
 ---
 # Jira version.
-jira_version: "8.9.0"
+jira_version: "8.5.4"
 
 # Jira download details.
 jira_download: "{{ _jira_download[jira_version] }}"
