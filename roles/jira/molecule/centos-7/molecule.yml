@@ -15,13 +15,23 @@
 # limitations under the License.
 
 driver:
-  name: delegated
-  options:
-    managed: false
-    ansible_connection_options:
-      ansible_connection: local
+  name: vagrant
+  provider:
+    name: libvirt
 platforms:
-  - name: localhost
+  - name: ${MOLECULE_INSTANCE_NAME}-1
+    box: generic/centos7
+    cpu: 2
+    memory: 2048
+    interfaces:
+      - auto_config: true
+        network_name: private_network
+        type: dhcp
+    provider_raw_config_args:
+      - 'nic_model_type = "virtio"'
+      - 'disk_bus = "virtio"'
+      - 'volume_cache = "none"'
+      - 'storage :file, bus: "virtio", cache: "none"'
 lint: |
   set -ex
   yamllint .
