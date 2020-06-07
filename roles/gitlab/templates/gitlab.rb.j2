@@ -72,3 +72,11 @@ nginx['ssl_client_certificate'] = "{{ gitlab_nginx_ssl_client_certificate }}"
 
 # To change other settings, see:
 # https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/README.md#changing-gitlab-yml-settings
+postgresql['enable'] = false
+gitlab_rails['db_adapter'] = "postgresql"
+gitlab_rails['db_host'] = '{{ gitlab_db_host }}'
+gitlab_rails['db_port'] = '{{ gitlab_db_port }}'
+gitlab_rails['db_username'] = '{{ gitlab_db_username }}'
+gitlab_rails['db_password'] = '{{ gitlab_db_password }}'
+gitlab_rails['db_encoding'] = "utf8"
+gitlab_rails['db_database'] = "{{ gitlab_db_database }}"

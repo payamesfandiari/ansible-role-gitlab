@@ -58,3 +58,10 @@ gitlab_email_enabled: "false"
 gitlab_email_from: "gitlab@example.com"
 gitlab_email_display_name: "Gitlab"
 gitlab_email_reply_to: "gitlab@example.com"
+
+# Postgresql Settings
+gitlab_db_host: "172.16.1.61"
+gitlab_db_port: "5432"
+gitlab_db_username: "gitlab"
+gitlab_db_password: ""
+gitlab_db_database: "gitlab"
